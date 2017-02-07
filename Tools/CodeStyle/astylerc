@@ -7,3 +7,4 @@ suffix=none
 lineend=linux
 unpad-paren
 pad-header
+indent-switches
