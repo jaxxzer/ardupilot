@@ -28,6 +28,7 @@ known_param_fields = [
              'Bitmask',
              'Volatile',
              'ReadOnly',
+             'Frame',
                       ]
 
 required_param_fields = [

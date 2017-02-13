@@ -229,12 +229,14 @@ Complete Parameter List
 
             if d.get('User', None) == 'Advanced':
                 ret += '\n| *Note: This parameter is for advanced users*'
+            if d.get('Frame', None):
+                ret += '\n| *Note: This parameter is only applicable for %s*' % d.get('Frame')
             ret += "\n\n%s\n" % self.escape(param.Description)
 
             headings = []
             row = []
             for field in param.__dict__.keys():
-                if field not in ['name', 'DisplayName', 'Description', 'User'] and field in known_param_fields:
+                if field not in ['name', 'DisplayName', 'Description', 'User', 'Frame'] and field in known_param_fields:
                     headings.append(field)
                     if field in field_table_info and Emit.prog_values_field.match(param.__dict__[field]):
                         row.append(self.render_prog_values_field(field_table_info[field], param, field))

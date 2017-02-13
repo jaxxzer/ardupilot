@@ -59,11 +59,13 @@ DO NOT EDIT
             t += '\n\n<h2>%s</h2>' % tag
             if d.get('User', None) == 'Advanced':
                 t += '<em>Note: This parameter is for advanced users</em><br>'
+            if d.get('Frame', None):
+                t += '<em>Note: This parameter is only applicable for %s</em><br>' % d.get('Frame')
             t += "\n\n<p>%s</p>\n" % cgi.escape(param.Description)
             t += "<ul>\n"
 
             for field in param.__dict__.keys():
-                if field not in ['name', 'DisplayName', 'Description', 'User'] and field in known_param_fields:
+                if field not in ['name', 'DisplayName', 'Description', 'User', 'Frame'] and field in known_param_fields:
                     if field == 'Values' and Emit.prog_values_field.match(param.__dict__[field]):
                         values = (param.__dict__[field]).split(',')
                         t += "<table><th>Value</th><th>Meaning</th>\n"
