@@ -224,7 +224,7 @@ build_arduplane() {
         ddir=$binaries/Plane/$hdate/$b
         skip_build $tag $ddir && continue
         make clean || continue
-        make $b -j4 || {
+        make $b -j8 || {
             echo "Failed build of ArduPlane $b $tag"
             error_count=$((error_count+1))
             continue
@@ -265,7 +265,7 @@ build_arduplane() {
     skip_build $tag $ddir || {
         for v in v1 v2 v3 v4; do
             make px4-clean
-            make px4-$v -j2 || {
+            make px4-$v -j8 || {
                 echo "Failed build of ArduPlane PX4 $tag for $v"
                 error_count=$((error_count+1))
                 checkout ArduPlane "latest" "" ""
@@ -355,7 +355,7 @@ build_arducopter() {
         skip_build $tag $ddir && continue
         for v in v1 v2 v3 v4; do
             make px4-clean
-            make px4-$v$framesuffix -j2 || {
+            make px4-$v$framesuffix -j8 || {
                 echo "Failed build of ArduCopter PX4 $tag for $v"
                 error_count=$((error_count+1))
                 continue
@@ -382,7 +382,7 @@ build_rover() {
         ddir=$binaries/Rover/$hdate/$b
         skip_build $tag $ddir && continue
         make clean || continue
-        make $b -j4 || {
+        make $b -j8 || {
             echo "Failed build of APMrover2 $b $tag"
             error_count=$((error_count+1))
             continue
@@ -417,7 +417,7 @@ build_rover() {
     skip_build $tag $ddir || {
         for v in v1 v2 v3 v4; do
             make px4-clean
-            make px4-$v -j2 || {
+            make px4-$v -j8 || {
                 echo "Failed build of APMrover2 PX4 $tag"
                 error_count=$((error_count+1))
                 checkout APMrover2 "latest" "" ""
@@ -445,7 +445,7 @@ build_antennatracker() {
         ddir=$binaries/AntennaTracker/$hdate/$b
         skip_build $tag $ddir && continue
         make clean || continue
-        make $b -j4 || {
+        make $b -j8 || {
             echo "Failed build of AntennaTracker $b $tag"
             error_count=$((error_count+1))
             continue
@@ -484,7 +484,7 @@ build_antennatracker() {
     skip_build $tag $ddir || {
         for v in v1 v2 v3 v4; do
             make px4-clean
-            make px4-$v -j2 || {
+            make px4-$v -j8 || {
                 echo "Failed build of AntennaTracker PX4 $tag"
                 error_count=$((error_count+1))
                 checkout AntennaTracker "latest" "" ""
@@ -501,6 +501,52 @@ build_antennatracker() {
     popd
 }
 
+# build ardusub binaries
+build_ardusub() {
+    tag="$1"
+    echo "Building ArduSub $tag binaries from $(pwd)"
+    for b in erlebrain2 navio navio2 pxf pxfmini; do
+        echo "Building ArduSub $tag $b binaries"
+        checkout ArduSub $tag $b "" || continue
+        skip_board_waf $b && continue
+        ddir=$binaries/Sub/$hdate/$b
+        skip_build $tag $ddir && continue
+        waf configure --board $b --out $BUILDROOT clean sub || {
+            echo "Failed build of ArduSub $b $tag"
+            error_count=$((error_count+1))
+            continue
+        }
+        copyit $BUILDROOT/$b/bin/ardusub $ddir $tag "ArduSub"
+        touch $binaries/Sub/$tag
+    done
+    pushd ArduSub
+    echo "Building ArduSub $tag PX4 binaries"
+    ddir=$binaries/Sub/$hdate/PX4
+    checkout ArduSub $tag PX4 "" || {
+        checkout ArduSub "latest" "" ""
+        popd
+        return
+    }
+    skip_build $tag $ddir || {
+        for v in v1 v2 v3 v4; do
+            make px4-clean
+            make px4-$v -j8 || {
+                echo "Failed build of ArduSub PX4 $tag"
+                error_count=$((error_count+1))
+                checkout ArduSub "latest" "" ""
+                popd
+                return
+            }
+        done
+        copyit ArduSub-v1.px4 $binaries/Sub/$hdate/PX4 $tag &&
+        copyit ArduSub-v2.px4 $binaries/Sub/$hdate/PX4 $tag &&
+        test ! -f ArduSub-v3.px4 || copyit ArduSub-v3.px4 $binaries/Sub/$hdate/PX4 $tag &&
+        test ! -f ArduSub-v4.px4 || copyit ArduSub-v4.px4 $binaries/Sub/$hdate/PX4 $tag 
+    }
+    checkout ArduSub "latest" "" ""
+    popd
+}
+
 [ -f .gitmodules ] && {
     git submodule init
     git submodule update --recursive -f
@@ -510,7 +556,7 @@ export BUILDROOT="$TMPDIR/binaries.build"
 rm -rf $BUILDROOT
 
 # make sure PX4 is rebuilt from scratch
-for d in ArduPlane ArduCopter APMrover2 AntennaTracker; do
+for d in ArduPlane ArduCopter APMrover2 AntennaTracker ArduSub; do
          pushd $d
          make px4-clean || exit 1
          popd
@@ -521,6 +567,7 @@ for build in stable beta latest; do
     build_arducopter $build
     build_rover $build
     build_antennatracker $build
+    build_ardusub $build
 done
 
 rm -rf $TMPDIR

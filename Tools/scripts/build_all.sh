@@ -16,7 +16,7 @@ pushd ArduPlane
 for b in sitl linux; do
     pwd
     make clean
-    make $b -j4
+    make -j8 $b
 done
 popd
 
@@ -25,7 +25,7 @@ pushd ArduCopter
 for b in sitl linux; do
     pwd
     make clean
-    make $b -j4
+    make -j8 $b
 done
 popd
 
@@ -34,7 +34,7 @@ pushd APMrover2
 for b in sitl linux; do
     pwd
     make clean
-    make $b -j4
+    make -j8 $b
 done
 popd
 
@@ -43,7 +43,16 @@ pushd AntennaTracker
 for b in sitl; do
     pwd
     make clean
-    make $b -j4
+    make -j8 $b
+done
+popd
+
+echo "Testing ArduSub build"
+pushd ArduSub
+for b in sitl linux; do
+    pwd
+    make clean
+    make -j8 $b
 done
 popd
 

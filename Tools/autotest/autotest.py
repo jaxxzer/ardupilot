@@ -196,6 +196,10 @@ steps = [
     'fly.CopterAVC',
 
     'build.AntennaTracker',
+    
+    'build.ArduSub',
+    'defaults.ArduSub',
+    'dive.ArduSub',
 
     'convertgpx',
     ]
