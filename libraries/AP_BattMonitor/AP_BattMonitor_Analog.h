@@ -84,8 +84,11 @@ public:
     /// Constructor
     AP_BattMonitor_Analog(AP_BattMonitor &mon, uint8_t instance, AP_BattMonitor::BattMonitor_State &mon_state);
 
+    /// Read the initial (resting) voltage of the pack, and determine initial capacity remaining
+    void init() override;
+
     /// Read the battery voltage and current.  Should be called at 10hz
-    void read();
+    void read() override;
 
 protected:
 

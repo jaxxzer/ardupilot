@@ -17,6 +17,65 @@ AP_BattMonitor_Analog::AP_BattMonitor_Analog(AP_BattMonitor &mon, uint8_t instan
     _state.healthy = true;
 }
 
+void
+AP_BattMonitor_Analog::init() {
+    const uint8_t num_entries = 15;
+
+    const struct {
+        float voltage;
+        uint8_t percent;
+    } lookup[num_entries] = {
+        {3.17, 0},
+        {3.68, 5},
+        {3.70, 10},
+        {3.74, 15},
+        {3.77, 25},
+        {3.80, 45},
+        {3.87, 55},
+        {3.97, 79},
+        {4.01, 84},
+        {4.04, 88},
+        {4.07, 91},
+        {4.09, 94},
+        {4.12, 96},
+        {4.15, 98},
+        {4.17, 100}
+    };
+
+    float voltage = 0;
+
+    const uint8_t num_samples = 5;
+    for (uint8_t i = 0; i < num_samples; i++) {
+        hal.scheduler->delay(2);
+        voltage += _volt_pin_analog_source->voltage_latest() * _mon._volt_multiplier[_state.instance];
+    }
+
+    voltage = voltage/num_samples;
+
+    uint8_t cells = 0;
+
+    // determine the number of cells
+    // lower than 21.5 V on a 6s will be seen as a fully charged 5S (not good)
+    for (uint8_t i = 0; i <= 6; i++) {
+        if (voltage < i * 4.3f) {
+            cells = i;
+            break;
+        }
+    }
+
+    if (!cells) {
+        return;
+    }
+
+    for (uint8_t i = 0; i < num_entries ; i++) {
+        if (voltage/cells > lookup[i].voltage) {
+            continue;
+        }
+        _state.current_total_mah += (1.0f - (lookup[i].percent * 0.01f)) * _mon.pack_capacity_mah(_state.instance);
+        break;
+    }
+}
+
 // read - read the voltage and current
 void
 AP_BattMonitor_Analog::read()
