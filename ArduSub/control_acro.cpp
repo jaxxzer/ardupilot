@@ -79,6 +79,9 @@ void Sub::acro_run()
         // output pilot's throttle
         attitude_control.set_throttle_out(channel_throttle->norm_input(), false, g.throttle_filt);
         pos_control.relax_alt_hold_controllers(motors.get_throttle_hover());
+        // initialise position and desired velocity
+        pos_control.set_alt_target(inertial_nav.get_altitude());
+        pos_control.set_desired_velocity_z(0);
     } else {
         pos_control.update_z_controller();
     }
@@ -88,7 +91,6 @@ void Sub::acro_run()
     //radio_in is raw pwm value
     motors.set_forward(channel_forward->norm_input());
     motors.set_lateral(channel_lateral->norm_input());
-
 }
 
 
