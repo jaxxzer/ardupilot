@@ -40,5 +40,6 @@ void Sub::userhook_SlowLoop()
 void Sub::userhook_SuperSlowLoop()
 {
     // put your 1Hz code here
+	gcs_send_text_fmt(MAV_SEVERITY_INFO, "yaw: %d \t%d", ahrs.yaw_sensor, last_pilot_heading);
 }
 #endif
