@@ -26,6 +26,8 @@ def arm_sub(mavproxy, mav):
     wait_ready_to_arm(mavproxy);
     for i in range(8):
         mavproxy.send('rc %d 1500\n' % (i+1))
+        
+    
 
     mavproxy.send('arm throttle\n')
     mavproxy.expect('ARMED')
@@ -73,7 +75,7 @@ def dive_mission(mavproxy, mav, filename):
     return True
 
 
-def fly_ArduSub(binary, viewerip=None, use_map=False, valgrind=False, gdb=False):
+def dive_ArduSub(binary, viewerip=None, use_map=False, valgrind=False, gdb=False):
     """Dive ArduSub in SITL.
 
     you can pass viewerip as an IP address to optionally send fg and
@@ -88,8 +90,22 @@ def fly_ArduSub(binary, viewerip=None, use_map=False, valgrind=False, gdb=False)
         options += ' --map'
 
     home = "%f,%f,%u,%u" % (HOME.lat, HOME.lng, HOME.alt, HOME.heading)
+    sitl = util.start_SITL(binary, model='vectored', wipe=True, home=home, speedup=10)
+    mavproxy = util.start_MAVProxy_SITL('ArduSub', options=options)
+    mavproxy.expect('Received [0-9]+ parameters')
 
-    sitl = util.start_SITL(binary, model='vectored', home=home, valgrind=valgrind, gdb=gdb, defaults_file='/home/jack/git/ardusub/Tools/autotest/default_params/sub.parm')
+    # setup test parameters
+    mavproxy.send("param load %s/default_params/sub.parm\n" % testdir)
+    mavproxy.expect('Loaded [0-9]+ parameters')
+    mavproxy.send("param set LOG_REPLAY 1\n")
+    mavproxy.send("param set LOG_DISARMED 1\n")
+    time.sleep(3)
+
+    # reboot with new parameters
+    util.pexpect_close(mavproxy)
+    util.pexpect_close(sitl)
+
+    sitl = util.start_SITL(binary, model='vectored', home=home, speedup=10, valgrind=valgrind, gdb=gdb)
     mavproxy = util.start_MAVProxy_SITL('ArduSub', options=options)
     mavproxy.expect('Telemetry log: (\S+)')
     logfile = mavproxy.match.group(1)
@@ -141,12 +157,6 @@ def fly_ArduSub(binary, viewerip=None, use_map=False, valgrind=False, gdb=False)
         if not log_download(mavproxy, mav, util.reltopdir("../buildlogs/ArduSub-log.bin")):
             print("Failed log download")
             failed = True
-#        if not drive_left_circuit(mavproxy, mav):
-#            print("Failed left circuit")
-#            failed = True
-#        if not drive_RTL(mavproxy, mav):
-#            print("Failed RTL")
-#            failed = True
     except pexpect.TIMEOUT as e:
         print("Failed with timeout")
         failed = True

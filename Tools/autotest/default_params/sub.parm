@@ -61,3 +61,5 @@ FLTMODE4         0
 FLTMODE5         0
 FLTMODE6         0
 FS_GCS_ENABLE    0
+LOG_REPLAY       1
+LOG_DISARMED     1

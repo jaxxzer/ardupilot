@@ -238,6 +238,8 @@ def binary_path(step, debug=False):
         binary_name = "arducopter-heli"
     elif step.find("QuadPlane") != -1:
         binary_name = "arduplane"
+    elif step.find("ArduSub") != -1:
+        binary_name = "ardusub"
     else:
         # cope with builds that don't have a specific binary
         return None
@@ -434,10 +436,18 @@ def write_fullresults():
     results.addfile('AntennaTracker code size', 'AntennaTracker.sizes.txt')
     results.addfile('AntennaTracker stack sizes', 'AntennaTracker.framesizes.txt')
     results.addglob("AntennaTracker ELF", 'AntennaTracker.elf')
+    results.addfile('ArduSub build log', 'ArduSub.txt')
+    results.addfile('ArduSub code size', 'ArduSub.sizes.txt')
+    results.addfile('ArduSub stack sizes', 'ArduSub.framesizes.txt')
+    results.addfile('ArduSub defaults', 'default_params/ArduSub-defaults.parm')
+    results.addglob("ArduSub log", 'ArduSub-*.BIN')
+    results.addglob("ArduSub core", 'ArduSub.core')
+    results.addglob("ArduSub ELF", 'ArduSub.elf')
     results.addglob('APM:Libraries documentation', 'docs/libraries/index.html')
     results.addglob('APM:Plane documentation', 'docs/ArduPlane/index.html')
     results.addglob('APM:Copter documentation', 'docs/ArduCopter/index.html')
     results.addglob('APM:Rover documentation', 'docs/APMrover2/index.html')
+    results.addglob('APM:Sub documentation', 'docs/ArduSub/index.html')
     results.addglobimage("Flight Track", '*.png')
 
     write_webresults(results)
