@@ -152,9 +152,10 @@ void Sub::init_ardupilot()
     // update motor interlock state
     update_using_interlock();
 
-    ahrs_view = ahrs.create_view(ROTATION_NONE);
 
     init_rc_in();               // sets up rc channels from radio
+    ahrs_view = ahrs.create_view(ROTATION_NONE);
+
     init_rc_out();              // sets up motors and output to escs
     init_joystick();            // joystick initialization
 
@@ -299,6 +300,7 @@ void Sub::init_ardupilot()
     init_capabilities();
 
     cliSerial->print("\nReady to FLY ");
+    ahrs_view->update();
 
     // flag that initialisation has completed
     ap.initialised = true;
