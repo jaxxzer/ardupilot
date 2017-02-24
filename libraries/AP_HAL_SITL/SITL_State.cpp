@@ -454,9 +454,9 @@ Vector3f SITL_State::_rand_vec3f(void)
 
 void SITL_State::init(int argc, char * const argv[])
 {
-    pwm_input[0] = pwm_input[1] = pwm_input[3] = 1500;
-    pwm_input[4] = pwm_input[7] = 1800;
-    pwm_input[2] = pwm_input[5] = pwm_input[6] = 1000;
+//    pwm_input[0] = pwm_input[1] = pwm_input[3] = 1500;
+//    pwm_input[4] = pwm_input[7] = 1800;
+//    pwm_input[2] = pwm_input[5] = pwm_input[6] = 1000;
 
     _scheduler = Scheduler::from(hal.scheduler);
     _parse_command_line(argc, argv);

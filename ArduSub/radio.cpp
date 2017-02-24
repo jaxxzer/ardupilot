@@ -44,14 +44,16 @@ void Sub::init_rc_in()
     // set default dead zones
     default_dead_zones();
 
-    // initialize rc input to 1500 on control channels (rather than 0)
-    for (int i = 0; i < 7; i++) {
-        if (i == 4) {
-            hal.rcin->set_override(i, 1100); // Channel 5 mode selection
-        } else {
-            hal.rcin->set_override(i, 1500);
-        }
-    }
+//#if CONFIG_HAL_BOARD != HAL_BOARD_SITL
+//    // initialize rc input to 1500 on control channels (rather than 0)
+//    for (int i = 0; i < 7; i++) {
+//        if (i == 4) {
+//            hal.rcin->set_override(i, 1153); // Channel 5 mode selection
+//        } else {
+//            hal.rcin->set_override(i, 1500);
+//        }
+//    }
+//#endif
 
     // initialise throttle_zero flag
     ap.throttle_zero = true;

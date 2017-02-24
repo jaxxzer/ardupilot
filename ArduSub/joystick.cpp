@@ -426,6 +426,7 @@ JSButton* Sub::get_button(uint8_t index)
 
 void Sub::camera_tilt_smooth()
 {
+#if CONFIG_HAL_BOARD != HAL_BOARD_SITL
     if (failsafe.manual_control) {
         return;
     }
@@ -439,6 +440,7 @@ void Sub::camera_tilt_smooth()
     channels[7] = cam_tilt;
 
     failsafe.rc_override_active = hal.rcin->set_overrides(channels, 10);
+#endif
 }
 
 void Sub::default_js_buttons()

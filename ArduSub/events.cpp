@@ -31,21 +31,23 @@ void Sub::failsafe_battery_event(void)
 
 void Sub::failsafe_manual_control_check()
 {
-    uint32_t tnow = AP_HAL::millis();
-
-    // Require at least 2Hz update
-    if (tnow > failsafe.last_manual_control_ms + 500) {
-        if (!failsafe.manual_control) {
-            failsafe.manual_control = true;
-            set_neutral_controls();
-            init_disarm_motors();
-            Log_Write_Error(ERROR_SUBSYSTEM_INPUT, ERROR_CODE_FAILSAFE_OCCURRED);
-            gcs_send_text(MAV_SEVERITY_CRITICAL, "Lost manual control");
-        }
-        return;
-    }
-
-    failsafe.manual_control = false;
+//#if CONFIG_HAL_BOARD != HAL_BOARD_SITL
+//    uint32_t tnow = AP_HAL::millis();
+//
+//    // Require at least 2Hz update
+//    if (tnow > failsafe.last_manual_control_ms + 500) {
+//        if (!failsafe.manual_control) {
+//            failsafe.manual_control = true;
+//            set_neutral_controls();
+//            init_disarm_motors();
+//            Log_Write_Error(ERROR_SUBSYSTEM_INPUT, ERROR_CODE_FAILSAFE_OCCURRED);
+//            gcs_send_text(MAV_SEVERITY_CRITICAL, "Lost manual control");
+//        }
+//        return;
+//    }
+//
+//    failsafe.manual_control = false;
+//#endif
 }
 
 void Sub::failsafe_internal_pressure_check()
@@ -146,6 +148,7 @@ void Sub::set_leak_status(bool status)
 // failsafe_gcs_check - check for ground station failsafe
 void Sub::failsafe_gcs_check()
 {
+#if CONFIG_HAL_BOARD != HAL_BOARD_SITL
     // return immediately if we have never had contact with a gcs, or if gcs failsafe action is disabled
     // this also checks to see if we have a GCS failsafe active, if we do, then must continue to process the logic for recovery from this state.
     if (failsafe.last_heartbeat_ms == 0 || (!g.failsafe_gcs && g.failsafe_gcs == FS_GCS_DISABLED)) {
@@ -191,6 +194,7 @@ void Sub::failsafe_gcs_check()
     } else if (g.failsafe_gcs == FS_GCS_SURFACE && motors.armed()) {
         set_mode(SURFACE, MODE_REASON_GCS_FAILSAFE);
     }
+#endif
 }
 
 // executes terrain failsafe if data is missing for longer than a few seconds
