@@ -298,6 +298,8 @@ void Sub::init_ardupilot()
 
     cliSerial->print("\nReady to FLY ");
 
+    ahrs_view.update();
+
     // flag that initialisation has completed
     ap.initialised = true;
 }
@@ -317,6 +319,7 @@ void Sub::startup_INS_ground()
 
     // reset ahrs including gyro bias
     ahrs.reset();
+    ahrs_view.update();
 }
 
 // calibrate gyros - returns true if succesfully calibrated
@@ -328,6 +331,8 @@ bool Sub::calibrate_gyros()
     // reset ahrs gyro bias
     if (sub.ins.gyro_calibrated_ok_all()) {
         sub.ahrs.reset_gyro_drift();
+        ahrs_view.update();
+
         return true;
     }
 
