@@ -19,6 +19,7 @@ import apmrover2
 import arducopter
 import arduplane
 import quadplane
+import ardusub
 from pysim import util
 
 os.environ['PYTHONUNBUFFERED'] = '1'
@@ -279,6 +280,9 @@ def run_step(step):
 
     if step == 'build.Helicopter':
         return util.build_SITL('bin/arducopter-heli', j=opts.j, debug=opts.debug)
+    
+    if step == 'build.ArduSub':
+        return util.build_SITL('bin/ardusub', j=opts.j, debug=opts.debug)
 
     binary = binary_path(step, debug=opts.debug)
 
@@ -290,6 +294,9 @@ def run_step(step):
 
     if step == 'defaults.APMrover2':
         return get_default_params('APMrover2', binary)
+    
+    if step == 'defaults.ArduSub':
+        return get_default_params('ArduSub', binary)
 
     if step == 'fly.ArduCopter':
         return arducopter.fly_ArduCopter(binary, viewerip=opts.viewerip, use_map=opts.map, valgrind=opts.valgrind, gdb=opts.gdb)
@@ -305,6 +312,9 @@ def run_step(step):
 
     if step == 'drive.APMrover2':
         return apmrover2.drive_APMrover2(binary, viewerip=opts.viewerip, use_map=opts.map, valgrind=opts.valgrind, gdb=opts.gdb)
+    
+    if step == 'dive.ArduSub':
+        return ardusub.dive_ArduSub(binary, viewerip=opts.viewerip, use_map=opts.map, valgrind=opts.valgrind, gdb=opts.gdb)
 
     if step == 'build.All':
         return build_all()
