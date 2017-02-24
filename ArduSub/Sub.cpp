@@ -102,7 +102,8 @@ Sub::Sub(void) :
     sensor_health.baro = true;
     sensor_health.compass = true;
 
-    //failsafe.manual_control = true;
+    failsafe.last_heartbeat_ms = 0;
+    failsafe.manual_control = true;
 }
 
 Sub sub;
