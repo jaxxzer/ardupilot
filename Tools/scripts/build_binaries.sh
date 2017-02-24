@@ -158,6 +158,7 @@ skip_build() {
         echo "Skipping build - version match $newversion"
         return 0
     }
+    return 0
     echo "$ldir needs rebuild"
     return 1
 }
