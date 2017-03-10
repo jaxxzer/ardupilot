@@ -415,6 +415,18 @@ void Sub::auto_loiter_run()
     attitude_control.input_euler_angle_roll_pitch_euler_rate_yaw(target_roll, target_pitch, target_yaw_rate, get_smoothing_gain());
 }
 
+
+void Sub::auto_rtl_start()
+{
+    wp_nav.set_
+    auto_wp_run();
+}
+
+void Sub::auto_rtl_run()
+{
+
+}
+
 // get_default_auto_yaw_mode - returns auto_yaw_mode based on WP_YAW_BEHAVIOR parameter
 // set rtl parameter to true if this is during an RTL
 uint8_t Sub::get_default_auto_yaw_mode(bool rtl)
