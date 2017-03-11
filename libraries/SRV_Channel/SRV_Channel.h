@@ -150,6 +150,11 @@ public:
         return servo_trim;
     }
 
+    // get FUNCTION parameter
+    Aux_servo_function_t get_function(void) const {
+        return (Aux_servo_function_t)function.get();
+    }
+
 private:
     AP_Int16 servo_min;
     AP_Int16 servo_max;

@@ -37,7 +37,7 @@ bool AP_ServoRelayEvents::do_set_servo(uint8_t _channel, uint16_t pwm)
         repeat = 0;
     }
     SRV_Channel *c = SRV_Channels::srv_channel(_channel-1);
-    if (c == nullptr) {
+    if (c == nullptr || c->get_function() != SRV_Channel::k_none) {
         return false;
     }
     c->set_output_pwm(pwm);
@@ -71,6 +71,12 @@ bool AP_ServoRelayEvents::do_repeat_servo(uint8_t _channel, uint16_t _servo_valu
         // not allowed
         return false;
     }
+
+    SRV_Channel *c = SRV_Channels::srv_channel(_channel-1);
+    if (c == nullptr || c->get_function() != SRV_Channel::k_none) {
+        return false;
+    }
+
     channel = _channel;
     type = EVENT_TYPE_SERVO;
 
@@ -115,7 +121,7 @@ void AP_ServoRelayEvents::update_events(void)
     switch (type) {
     case EVENT_TYPE_SERVO: {
         SRV_Channel *c = SRV_Channels::srv_channel(channel-1);
-        if (c != nullptr) {
+        if (c != nullptr || c->get_function() != SRV_Channel::k_none) {
             if (repeat & 1) {
                 c->set_output_pwm(c->get_trim());
             } else {
