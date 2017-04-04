@@ -798,6 +798,8 @@ private:
     void surface_run();
 
     void convert_old_parameters(void);
+    bool handle_motor_test(mavlink_command_long_t command);
+
 
 public:
     void mavlink_delay_cb();
