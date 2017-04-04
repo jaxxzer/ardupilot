@@ -85,6 +85,8 @@ bool Sub::mavlink_motor_test_check(mavlink_channel_t chan, bool check_rc)
 //  returns MAV_RESULT_ACCEPTED on success, MAV_RESULT_FAILED on failure
 uint8_t Sub::mavlink_motor_test_start(mavlink_channel_t chan, uint8_t motor_seq, uint8_t throttle_type, uint16_t throttle_value, float timeout_sec)
 {
+
+
     // if test has not started try to start it
     if (!ap.motor_test) {
         /* perform checks that it is ok to start test
@@ -150,4 +152,33 @@ void Sub::motor_test_stop()
 
     // turn off notify leds
     AP_Notify::flags.esc_calibration = false;
+}
+
+#define MAV_MOTOR_TEST_TYPE_DEFAULT 0
+#define MAV_MOTOR_TEST_TYPE_SEQ     1
+#define MAV_MOTOR_TEST_TYPE_BOARD   2
+
+void Sub::do_motor_test(mavlink_command_long_t command) {
+    float motor_sequence_number = command.param1;
+    float throttle_type = command.param2;
+    float throttle = command.param3;
+    float timeout_s = command.param4;
+    float test_type = command.param5;
+    if (test_type!= MAV_MOTOR_TEST_TYPE_BOARD) {
+        return;
+    }
+
+    switch (throttle_type) {
+    case MOTOR_TEST_THROTTLE_PERCENT:
+        break;
+    case MOTOR_TEST_THROTTLE_PWM:
+        motors.output_test(thing);
+        break;
+    case MOTOR_TEST_THROTTLE_PILOT:
+        break;
+    default:
+    }
+
+
+
 }
