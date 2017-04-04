@@ -122,7 +122,7 @@ void Sub::motors_output()
 {
     // check if we are performing the motor test
     if (ap.motor_test) {
-        motor_test_output();
+        verify_motor_test();
     } else {
         if (!ap.using_interlock) {
             // if not using interlock switch, set according to Emergency Stop status
@@ -134,6 +134,113 @@ void Sub::motors_output()
         motors.output();
     }
 }
+static uint32_t last_do_motor_test_fail_ms = 0;
+static uint32_t last_do_motor_test_ms = 0;
+// Initialize new style motor test
+// Perform checks to see if it is ok to begin the motor test
+// Returns true if motor test has begun
+bool Sub::init_motor_test()
+{
+    uint32_t tnow = AP_HAL::millis();
+
+    // Ten second cooldown period required with no do_set_motor requests required
+    // after failure.
+    if (tnow < last_do_motor_test_fail_ms + 10000 && last_do_motor_test_fail_ms > 0) {
+        last_do_motor_test_fail_ms = tnow;
+        return false;
+    }
+
+    // check if safety switch has been pushed
+    if (hal.util->safety_switch_state() == AP_HAL::Util::SAFETY_DISARMED) {
+        gcs_send_text(MAV_SEVERITY_CRITICAL,"Motor Test: Safety switch");
+        return false;
+    }
+
+    // Make sure we are on the ground
+    if (motors.armed()) {
+        gcs_send_text(MAV_SEVERITY_WARNING, "Disarm before testing motors.");
+        return false;
+    }
+
+    ap.motor_test = true;
+
+    // Arm motors
+    enable_motor_output();
+    motors.armed(true);
+
+    return true;
+}
+
+// Verify new style motor test
+// The motor test will fail if vehicle motion is detected or if
+// the interval between received MAV_CMD_DO_SET_MOTOR requests exceeds
+// a timeout period
+// Returns true if it is ok to proceed with new style motor test
+bool Sub::verify_motor_test()
+{
+    bool pass = true;
+
+    // No sudden movements... ensures props are off during test
+//    if (ahrs.get_gyro().length() > 0.1) {
+//        pass = false;
+//    }
+
+    // Require at least 2 Hz incoming do_set_motor requests
+    if (AP_HAL::millis() > last_do_motor_test_ms + 500) {
+        gcs_send_text(MAV_SEVERITY_WARNING, "Timeout!");
+        pass = false;
+    }
+
+    if (!pass) {
+        ap.motor_test = false;
+        motors.armed(false); // disarm motors
+        last_do_motor_test_fail_ms = AP_HAL::millis();
+        return false;
+    }
+
+    return true;
+}
+
+#define MAV_MOTOR_TEST_TYPE_DEFAULT 0.0f
+#define MAV_MOTOR_TEST_TYPE_SEQ     1.0f
+#define MAV_MOTOR_TEST_TYPE_BOARD   2.0f
+
+bool Sub::handle_do_motor_test(mavlink_command_long_t command) {
+    last_do_motor_test_ms = AP_HAL::millis();
+    gcs_send_text(MAV_SEVERITY_WARNING, "test!");
+
+    // If we are not already testing motors, initialize test
+    if(!ap.motor_test) {
+        if (!init_motor_test()) {
+            gcs_send_text(MAV_SEVERITY_WARNING, "init fail!");
+            return false;
+        }
+    }
+
+    float motor_number = command.param1;
+    float throttle_type = command.param2;
+    float throttle = command.param3;
+    float timeout_s = command.param4;
+    float test_type = command.param5;
+
+    if (!is_equal(test_type, MAV_MOTOR_TEST_TYPE_BOARD)) {
+        return false;
+    }
+
+    if (is_equal(throttle_type, (float)MOTOR_TEST_THROTTLE_PWM)) {
+        return motors.set_output(motor_number, throttle);
+    }
+
+    if (is_equal(throttle_type, (float)MOTOR_TEST_THROTTLE_PERCENT)) {
+        throttle = constrain_float(throttle, 0.0f, 100.0f);
+        throttle = channel_throttle->get_radio_min() + throttle/100.0f * (channel_throttle->get_radio_max() - channel_throttle->get_radio_min());
+        gcs_send_text_fmt(MAV_SEVERITY_WARNING, "throttle %0.2f", throttle);
+        return motors.set_output(motor_number, throttle);
+    }
+
+    return false;
+}
+
 
 // translate wpnav roll/pitch outputs to lateral/forward
 void Sub::translate_wpnav_rp(float &lateral_out, float &forward_out)

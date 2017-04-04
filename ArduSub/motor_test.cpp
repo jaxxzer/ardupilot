@@ -153,28 +153,3 @@ void Sub::motor_test_stop()
     // turn off notify leds
     AP_Notify::flags.esc_calibration = false;
 }
-
-#define MAV_MOTOR_TEST_TYPE_DEFAULT 0.0f
-#define MAV_MOTOR_TEST_TYPE_SEQ     1.0f
-#define MAV_MOTOR_TEST_TYPE_BOARD   2.0f
-
-bool Sub::handle_motor_test(mavlink_command_long_t command) {
-    float motor_number = command.param1;
-    float throttle_type = command.param2;
-    float throttle = command.param3;
-    float timeout_s = command.param4;
-    float test_type = command.param5;
-    if (!is_equal(test_type, MAV_MOTOR_TEST_TYPE_SEQ)) {
-        return false;
-    }
-
-    if (is_equal(throttle_type, (float)MOTOR_TEST_THROTTLE_PWM)) {
-        return motors.set_output(motor_number, throttle);
-    }
-
-
-    return false;
-
-
-
-}
