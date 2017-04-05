@@ -76,14 +76,14 @@ bool AP_Baro_BMP280::_init()
 
     uint8_t whoami;
     if (!_dev->read_registers(BMP280_REG_ID, &whoami, 1)  ||
-        whoami != BMP280_ID) {
+        whoami != 0x60) {
         // not a BMP280
         _dev->get_semaphore()->give();
         return false;
     }
 
     // read the calibration data
-    uint8_t buf[24];
+    uint8_t buf[28];
     _dev->read_registers(BMP280_REG_CALIB, buf, sizeof(buf));
 
     _t1 = ((int16_t)buf[1] << 8) | buf[0];
@@ -98,6 +98,12 @@ bool AP_Baro_BMP280::_init()
     _p7 = ((int16_t)buf[19] << 8) | buf[18];
     _p8 = ((int16_t)buf[21] << 8) | buf[20];
     _p9 = ((int16_t)buf[23] << 8) | buf[22];
+    _h1 = buf[24];
+    _h2 = ((int16_t)buf[26] << 8) | buf[25];
+    _h3 = buf[27];
+    _h4 = ((int16_t)buf[26] << 8) | buf[25];
+    _h5 = ((int16_t)buf[26] << 8) | buf[25];
+    _h6 = buf[27];
 
     // SPI write needs bit mask
     uint8_t mask = 0xFF;
@@ -125,13 +131,15 @@ bool AP_Baro_BMP280::_init()
 //  acumulate a new sensor reading
 void AP_Baro_BMP280::_timer(void)
 {
-    uint8_t buf[6];
+    uint8_t buf[8];
 
     _dev->read_registers(BMP280_REG_DATA, buf, sizeof(buf));
 
     _update_temperature((buf[3] << 12) | (buf[4] << 4) | (buf[5] >> 4));
     _update_pressure((buf[0] << 12) | (buf[1] << 4) | (buf[2] >> 4));
+    _update_humidity(buf[6] << 8 | buf[7]);
 }
+
 
 // transfer data to the frontend
 void AP_Baro_BMP280::update(void)
@@ -190,6 +198,23 @@ void AP_Baro_BMP280::_update_pressure(int32_t press_raw)
     if (_sem->take(HAL_SEMAPHORE_BLOCK_FOREVER)) {
         _pressure = (float)p / 25600;
         _has_sample = true;
+        _sem->give();
+    }
+}
+
+void AP_Baro_BMP280::_update_humidity(int32_t adc_H)
+{
+    int32_t v_x1_u32r;
+    v_x1_u32r = (_t_fine - ((int32_t)76800));
+    v_x1_u32r = (((((adc_H << 14) - (((int32_t)_h4) << 20) - (((int32_t)_h5) * v_x1_u32r)) +
+            ((int32_t)16384)) >> 15) * (((((((v_x1_u32r * ((int32_t)_h6)) >> 10) * (((v_x1_u32r *
+            ((int32_t)_h3)) >> 11) + ((int32_t)32768))) >> 10) + ((int32_t)2097152)) *
+            ((int32_t)_h2) + 8192) >> 14));
+    v_x1_u32r = (v_x1_u32r - (((((v_x1_u32r >> 15) * (v_x1_u32r >> 15)) >> 7) * ((int32_t)_h1)) >> 4));
+    v_x1_u32r = (v_x1_u32r < 0 ? 0 : v_x1_u32r);
+    v_x1_u32r = (v_x1_u32r > 419430400 ? 419430400 : v_x1_u32r);
+    if (_sem->take(HAL_SEMAPHORE_BLOCK_FOREVER)) {
+        _humidity = ((uint32_t)(v_x1_u32r>>12)) / 1024.0f;
         _sem->give();
     }
 }
