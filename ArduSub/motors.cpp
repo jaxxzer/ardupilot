@@ -201,10 +201,6 @@ bool Sub::verify_motor_test()
     return true;
 }
 
-#define MAV_MOTOR_TEST_TYPE_DEFAULT 0.0f
-#define MAV_MOTOR_TEST_TYPE_SEQ     1.0f
-#define MAV_MOTOR_TEST_TYPE_BOARD   2.0f
-
 bool Sub::handle_do_motor_test(mavlink_command_long_t command) {
     last_do_motor_test_ms = AP_HAL::millis();
     gcs_send_text(MAV_SEVERITY_WARNING, "test!");
@@ -213,7 +209,7 @@ bool Sub::handle_do_motor_test(mavlink_command_long_t command) {
     if(!ap.motor_test) {
         if (!init_motor_test()) {
             gcs_send_text(MAV_SEVERITY_WARNING, "init fail!");
-            return false;
+            return false; // init fail
         }
     }
 
@@ -223,19 +219,29 @@ bool Sub::handle_do_motor_test(mavlink_command_long_t command) {
     float timeout_s = command.param4;
     float test_type = command.param5;
 
-    if (!is_equal(test_type, MAV_MOTOR_TEST_TYPE_BOARD)) {
-        return false;
+    if (!is_equal(test_type, (float)MOTOR_TEST_TYPE_BOARD) &&
+        !is_equal(test_type, (float)MOTOR_TEST_TYPE_DEFAULT)) {
+        gcs_send_text_fmt(MAV_SEVERITY_WARNING, "bad test type %0.2f", test_type);
+        return false; // test type not supported here
     }
 
+    if (is_equal(throttle_type, (float)MOTOR_TEST_THROTTLE_PILOT)) {
+        gcs_send_text_fmt(MAV_SEVERITY_WARNING, "bad throtle type %0.2f", throttle_type);
+
+        return false; // throttle type not supported here
+    }
+
+    gcs_send_text_fmt(MAV_SEVERITY_WARNING, "good!");
+
     if (is_equal(throttle_type, (float)MOTOR_TEST_THROTTLE_PWM)) {
-        return motors.set_output(motor_number, throttle);
+        return motors.set_output(motor_number, throttle); // true if motor output is set
     }
 
     if (is_equal(throttle_type, (float)MOTOR_TEST_THROTTLE_PERCENT)) {
         throttle = constrain_float(throttle, 0.0f, 100.0f);
         throttle = channel_throttle->get_radio_min() + throttle/100.0f * (channel_throttle->get_radio_max() - channel_throttle->get_radio_min());
         gcs_send_text_fmt(MAV_SEVERITY_WARNING, "throttle %0.2f", throttle);
-        return motors.set_output(motor_number, throttle);
+        return motors.set_output(motor_number, throttle); // true if motor output is set
     }
 
     return false;
