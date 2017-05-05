@@ -57,6 +57,10 @@ public:
         k_relay_2_on            = 54,           ///< trigger relay on
         k_relay_2_off           = 55,           ///< trigger relay off
         k_relay_2_toggle        = 56,           ///< trigger relay toggle
+
+        k_relay_1_momentary     = 57,           ///< relay toggle when button is pushed, and again when released
+        k_relay_2_momentary     = 58,
+
         // 57-60 reserved for future functions
         k_servo_1_inc           = 61,           ///< increase servo output
         k_servo_1_dec           = 62,           ///< decrease servo output

@@ -74,9 +74,11 @@ void Sub::transform_manual_control_to_rc_override(int16_t x, int16_t y, int16_t 
         // Act if button is pressed
         // Only act upon pressing button and ignore holding. This provides compatibility with Taranis as joystick.
         for (uint8_t i = 0 ; i < 16 ; i++) {
-            if ((buttons & (1 << i))) {
+            if (buttons & (1 << i)) {
                 handle_jsbutton_press(i,shift,(buttons_prev & (1 << i)));
                 buttonDebounce = tnow_ms;
+            } else if (buttons_prev & (1 << i)) {
+                handle_jsbutton_release(i, shift);
             }
         }
 
@@ -338,6 +340,11 @@ void Sub::handle_jsbutton_press(uint8_t button, bool shift, bool held)
             relay.toggle(0);
         }
         break;
+    case JSButton::button_function_t::k_relay_1_momentary:
+        if (!held) {
+            relay.on(0);
+        }
+        break;
     case JSButton::button_function_t::k_relay_2_on:
         relay.on(1);
         break;
@@ -347,6 +354,11 @@ void Sub::handle_jsbutton_press(uint8_t button, bool shift, bool held)
     case JSButton::button_function_t::k_relay_2_toggle:
         if (!held) {
             relay.toggle(1);
+        }
+        break;
+    case JSButton::button_function_t::k_relay_2_momentary:
+        if (!held) {
+            relay.on(1);
         }
         break;
 
@@ -481,6 +493,19 @@ void Sub::handle_jsbutton_press(uint8_t button, bool shift, bool held)
         break;
     case JSButton::button_function_t::k_custom_6:
         // Not implemented
+        break;
+    }
+}
+
+void Sub::handle_jsbutton_release(uint8_t button, bool shift) {
+
+    // Act based on the function assigned to this button
+    switch (get_button(button)->function(shift)) {
+    case JSButton::button_function_t::k_relay_1_momentary:
+        relay.off(0);
+        break;
+    case JSButton::button_function_t::k_relay_2_momentary:
+        relay.off(1);
         break;
     }
 }
