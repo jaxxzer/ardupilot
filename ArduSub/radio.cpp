@@ -61,4 +61,11 @@ void Sub::init_rc_out()
 
     // refresh auxiliary channel to function map
     SRV_Channels::update_aux_servo_function();
+
+    // set up aux channels 1-3 on pixhawk
+    for (uint8_t channel = 9; channel <= 11; channel++)
+    {
+        SRV_Channel *chan = SRV_Channels::srv_channel(channel - 1); // 0-indexed
+        ServoRelayEvents.do_set_servo(channel, chan->get_trim());   // 1-indexed
+    }
 }
