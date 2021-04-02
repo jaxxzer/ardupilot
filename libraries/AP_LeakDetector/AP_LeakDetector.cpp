@@ -78,15 +78,12 @@ void AP_LeakDetector::init()
             _state[i].instance = i;
             _drivers[i] = new AP_LeakDetector_Analog(*this, _state[i]);
             break;
-<<<<<<< HEAD
-=======
-#elif CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_NAVIGATOR
+#if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_NAVIGATOR
         case 27:
             _state[i].instance = i;
             _drivers[i] = new AP_LeakDetector_Digital(*this, _state[i]);
             break;
 #endif
->>>>>>> 14b9b16a05 (AP_LeakDetector: update leak pin for navigator r3)
         default:
             _drivers[i] = NULL;
             break;
