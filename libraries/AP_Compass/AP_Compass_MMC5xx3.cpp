@@ -93,9 +93,8 @@ bool AP_Compass_MMC5XX3::init()
 
     /* register the compass instance in the frontend */
     dev->set_device_type(DEVTYPE_MMC5883);
-    if (!register_compass(dev->get_bus_id(), compass_instance)) {
-        return false;
-    }
+    
+    compass_instance = register_compass();
 
     set_dev_id(compass_instance, dev->get_bus_id());
 
